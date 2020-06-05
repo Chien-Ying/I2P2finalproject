@@ -1,6 +1,17 @@
 Ultra OOXX
 ========
+## Update logs 0606:1:21
+1. GUI update
+* move the display of UltraBoard wintag to the right
+* adding display of index of the Ultraboard
+2. Enemy detect, Blocking complete
+3. Adding a display about scores on different possible placeable position (for debug)
+4. minor changes
 
+## Known bugs
+1. flushing problem on score display
+
+## Below are the TA's original markdown
 I2P Final project.
 
 ## 目標
