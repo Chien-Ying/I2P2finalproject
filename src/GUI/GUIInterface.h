@@ -24,7 +24,7 @@ namespace TA
     #define ESC "\033"
     class ASCII: public GUIInterface
     {
-        const static int GRAPH_HIGHT = 7+7+15;//7+15;
+        const static int GRAPH_HIGHT = 7+15;
         const static int GRAPH_WIDTH = 80;
         
         const static int TEXT_HIGHT = 10;
@@ -110,17 +110,29 @@ R"( _   _ _ _             _____  _______   ____   __
 
         virtual void updateGame(UltraBoard b)
         {
-            gotoxy(7+1, 0);
+            gotoxy(21+1, 0);//gotoxy(7+1, 0);
             const std::string buf(20, ' ');
 
+            std::printf("%s", buf.c_str());
+            std::printf(" 012 345 678\n");
             for (int i=0;i<9;++i)
             {
-                std::printf("%s", buf.c_str());
+                std::printf("%s%d", buf.c_str(), i);
                 for (int j=0;j<9;++j)
                 {
                     std::putchar(toPrintChar(b.get(i, j)));
                     if (j == 2 || j == 5) std::putchar('|');
                 }
+                ///!!!
+                if(i>=0 && i<3){
+                    std::printf("%s", buf.c_str());
+                    for (int j=0;j<3;++j)
+                    {
+                        std::putchar(toPrintChar(b.state(i, j)));
+                        if (j == 0 || j == 1) std::putchar('|');
+                    }
+                }
+
                 std::putchar('\n');
                 if (i==2 ||i==5) {
                     std::printf("%s", buf.c_str());
@@ -129,22 +141,12 @@ R"( _   _ _ _             _____  _______   ____   __
             }
             std::cout<<std::endl;
             //ultra board tag
-            for (int i=0;i<3;++i)
+            /*for (int i=0;i<3;++i)
             {
-                std::printf("%s", buf.c_str());
-                for (int j=0;j<3;++j)
-                {
-                    std::putchar(toPrintChar(b.state(i, j)));
-                    if (j == 0 || j == 1) std::putchar('|');
-                }
-                std::putchar('\n');
-                if (i==0 ||i==1) {
-                    std::printf("%s", buf.c_str());
-                    std::puts(std::string(5,'-').c_str());
-                }
+                
             }
             std::cout<<std::endl;
-
+            */
             gotoxy(GRAPH_HIGHT+TEXT_HIGHT+1, 0);
         }
     };

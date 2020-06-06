@@ -43,7 +43,7 @@ namespace TA
             while (!checkGameover()) {          
                 round++;
                 //TODO
-                std::cout<<"Round "<<round<<"\n";
+                
                 //end
                 AIInterface *first = nullptr;
                 AIInterface *second = nullptr;
@@ -61,19 +61,24 @@ namespace TA
                     tag = BoardInterface::Tag::X;
                 }
 
+                std::cout<<"Round:"<<round<<" Player:"<<(round%2? "O":"X")<<"\n";
+
                 if (!playOneRound(first, tag, second)) {
                     std::cout<<"This is the end?\n";
                 }
                 updateGuiGame();
 
                 system("read -p 'Press Enter to continue...' var");
+                
+                //testing
+                printf( "\033[H\033[J" );
                 //end
 
                 /*if (!playOneRound(first, tag, second)) {
                     
                 }
                 updateGuiGame();*/
-            } 
+            }
         } 
 
    private:
@@ -104,18 +109,22 @@ namespace TA
             //TODO
             if(MainBoard.getWinTag() == TA::BoardInterface::Tag::X){
                 std::cout<<"X WIN!GAMEOVER!!!\n";
+                updateGuiGame();
                 return true;
             }
             else if(MainBoard.getWinTag() == TA::BoardInterface::Tag::O){
                 std::cout<<"O WIN!GAMEOVER!!!\n";
+                updateGuiGame();
                 return true;
             }
             else if(MainBoard.getWinTag() == TA::BoardInterface::Tag::Tie){
                 std::cout<<"Tie!GAMEOVER!!!\n";
+                updateGuiGame();
                 return true;
             }
             else if(MainBoard.full()){
                 std::cout<<"FULL!GAMEOVER!!!\n";
+                updateGuiGame();
                 return true;
             }
             else return false;

@@ -11,6 +11,23 @@ namespace TA {
             X,
             Tie
         };
+        friend std::ostream& operator<<(std::ostream& os, Tag& tag){
+        switch(tag){
+            case Tag::None:
+                os<<"None";
+                break;
+            case Tag::O:
+                os<<"O";
+                break;
+            case Tag::X:
+                os<<"X";
+                break;
+            case Tag::Tie:
+                os<<"Tie";
+                break;
+        }
+        return os;
+    }
 
         virtual Tag state(int x, int y) const = 0;
 
@@ -58,7 +75,7 @@ namespace TA {
         //end
         //Ido
         void determineWin(int x, int y){
-            std::cout<<"determineWin\n";
+            //std::cout<<"determineWin\n";
             if(getWinTag() != Tag::None) return;
             Tag tmp = state(x,y);
             int flag = 0;

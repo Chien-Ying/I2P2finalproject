@@ -48,7 +48,7 @@ namespace TA {
         //end
         //Ido
         void determineWin(int x, int y){
-            std::cout<<"determine_U_Win\n";
+            //std::cout<<"determine_U_Win\n";
             if(getWinTag() != Tag::None) return;
             Tag tmp = state(x,y);
             int flag = 0;
