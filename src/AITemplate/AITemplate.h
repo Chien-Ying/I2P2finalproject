@@ -61,7 +61,17 @@ public:
         //vaild sub Board to put on
         int vaildx = x%3;
         int vaildy = y%3;
-        if(dbg)std::cout<<"block vaild:("<<vaildx<<" "<<vaildy<<")\n";
+        bool confined = true;
+        
+        if(!MainBoard.sub(vaildx, vaildy).full()){
+            confined=true;
+            if(dbg)std::cout<<"block vaild:("<<vaildx<<" "<<vaildy<<")\n";
+        }
+        else{
+            confined = false;
+            if(dbg)std::cout<<"block vaild:ALL\n";
+        }    
+
         
         //decide where to put: return (retx, rety)
         int retx=0, rety=0;
@@ -92,26 +102,54 @@ public:
         
         if(mode==Mode::Standard){
             //Standard AI mode
-            int points[3][3];
+            int points[9][9]={0};
             int maxpnt=0;
-            if(!MainBoard.sub(vaildx, vaildy).full()){
+            if(confined){
+                //in sub Board[vaildx][vaildy]
+                //check 3x3 position
+                if(MainBoard.state(vaildx, vaildy)==TA::BoardInterface::Tag::None){
+                    //subBoard not occupied yet
+                    for(int i=0; i<3; i++){
+                        for(int j=0; j<3; j++){
+                            points[i][j]=0;
+                            if(tgtBoard.state(i, j)==TA::BoardInterface::Tag::None){
+                                //empty space
+                                points[i][j]+=enemyAround(tgtBoard, i, j, this->mytag);
+                                points[i][j]+=allyAround(tgtBoard, i, j, this->mytag);
+                                //update (retx, rety) if better
+                                if(points[i][j]>maxpnt){
+                                    maxpnt = points[i][j];
+                                    retx = vaildx*3+i;
+                                    rety = vaildy*3+j;
+                                    decision = Mode::Standard;
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    //occupied or tied
+                    
+                }
                 
-                //check all position
-                for(int i=0; i<3; i++){
-                    for(int j=0; j<3; j++){
-                        points[i][j]=0;
-                        if(tgtBoard.state(i, j)==TA::BoardInterface::Tag::None){
-                            points[i][j]+=enemyAround(tgtBoard, i, j, this->mytag);
-                            //points[i][j]+=allyAround(tgtBoard, i, j, this->mytag);
-                            /*if(canConqure(tgtBoard, i, j)){
-                                points[i][j]=10;
-                            }*/
-                        
-                            //update (retx, rety) if better
+            }
+            else if(!confined){
+                //board full, place anywhere
+                for(int i=0; i<9; i++){
+                    for(int j=0; j<9; j++){
+                        if(MainBoard.get(i, j)==TA::BoardInterface::Tag::None){
+                            //if placeable
+                            if(MainBoard.state(i/3, j/3)==TA::BoardInterface::Tag::None){
+                                //if subBoard not occupied yet
+                                points[i][j]+=enemyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag);
+                                points[i][j]+=allyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag);
+                            }
+
+                            //update if better
                             if(points[i][j]>maxpnt){
                                 maxpnt = points[i][j];
-                                retx = vaildx*3+i;
-                                rety = vaildy*3+j;
+                                retx = i;
+                                rety = j;
                                 decision = Mode::Standard;
                             }
                         }
@@ -124,13 +162,32 @@ public:
             if(dbg){
                 std::cout<<"Decision by MODE::"<<decision<<std::endl;
                 std::cout<<"Points analysis:\n";
-                std::cout<<"  "<<vaildy*3<<" "<<vaildy*3+1<<" "<<vaildy*3+2<<std::endl;
-                for(int i=0; i<3; i++){
-                    std::cout<<vaildx*3+i;
-                    for(int j=0; j<3; j++){
-                        std::cout<<" "<<points[i][j];
+                
+                
+                //std::cout<<"  "<<vaildy*3<<" "<<vaildy*3+1<<" "<<vaildy*3+2<<std::endl;
+                for(int i=0; i<9; i++){
+                    if(i==0)std::cout<<" ";
+                    if(confined){
+                        std::cout<<" "<<vaildy*3+i;
+                        if(i==2)break;
                     }
-                std::cout<<"\n";
+                    else std::cout<<" "<<i;
+                }
+                std::cout<<std::endl;
+
+                for(int i=0; i<9; i++){
+                    if(confined)std::cout<<vaildx*3+i;
+                    else std::cout<<i; 
+
+                    for(int j=0; j<9; j++){
+                        if(confined){
+                            std::cout<<" "<<points[i][j];
+                            if(j==2)break;
+                        }
+                        else std::cout<<" "<<points[i][j];
+                    }
+                    std::cout<<"\n";
+                    if(confined&&i==2)break;
                 }
             }
         }
@@ -148,7 +205,7 @@ public:
         else return false;
     }
     bool isEnemy(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag allytag){
-        TA::BoardInterface::Tag enemytag;
+        TA::BoardInterface::Tag enemytag = TA::BoardInterface::Tag::None;
         if(allytag == TA::BoardInterface::Tag::O) enemytag = TA::BoardInterface::Tag::X;
         else if(allytag == TA::BoardInterface::Tag::X) enemytag = TA::BoardInterface::Tag::O;
         if(inRange(x,y)){

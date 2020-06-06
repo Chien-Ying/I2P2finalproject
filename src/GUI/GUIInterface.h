@@ -103,6 +103,7 @@ R"( _   _ _ _             _____  _______   ____   __
             switch(t) {
                 case BoardInterface::Tag::O: return 'O';
                 case BoardInterface::Tag::X: return 'X';
+                case BoardInterface::Tag::Tie: return 'T';
                 default:
                     return ' ';
             }

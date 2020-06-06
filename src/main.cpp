@@ -7,6 +7,7 @@
 #include <UltraOOXX/Game.h>
 #include <UltraOOXX/Wrapper/Content.h>
 
+bool randseed = true;
 
 bool load(const char *libpath, Content &table)
 {
@@ -36,8 +37,9 @@ bool load(const char *libpath, Content &table)
 
 int main()
 {
-    Content P1, P2;
+    if(randseed)srand(time(nullptr));
 
+    Content P1, P2;   
     if( !load("./a1.so", P1) ){
         std::cout<<"P1 Fail";
         exit(-1);

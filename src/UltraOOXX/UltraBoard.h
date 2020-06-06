@@ -17,6 +17,7 @@ namespace TA {
             this->wintag = Tag::None;
         }
 
+        //get UltraBoard[gx][gy]
         Board::Tag& get(int x, int y) {
             return b[x/3][y/3].get(x%3, y%3);
         }
@@ -25,6 +26,7 @@ namespace TA {
             return b[x][y];
         }
 
+        //wintag of UltraBoard[ix][iy]
         Tag state(int x, int y) const override {
             return b[x][y].getWinTag();
         };
