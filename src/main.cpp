@@ -7,7 +7,7 @@
 #include <UltraOOXX/Game.h>
 #include <UltraOOXX/Wrapper/Content.h>
 
-bool randseed = true;
+bool randseed = false;
 
 bool load(const char *libpath, Content &table)
 {

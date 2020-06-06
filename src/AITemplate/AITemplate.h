@@ -46,6 +46,8 @@ public:
     //end
     void init(bool order) override
     {
+        this->x = rand()%9;
+        this->y = rand()%9;
         if(order)this->mytag = TA::BoardInterface::Tag::O;
         else this->mytag = TA::BoardInterface::Tag::X;
         this->mode = Mode::Standard;
@@ -106,18 +108,17 @@ public:
             int maxpnt=0;
             if(confined){
                 //in sub Board[vaildx][vaildy]
-                //check 3x3 position
-                if(MainBoard.state(vaildx, vaildy)==TA::BoardInterface::Tag::None){
+                //3x3 options
+                if(!MainBoard.isOccupied(vaildx, vaildy)){
                     //subBoard not occupied yet
                     for(int i=0; i<3; i++){
                         for(int j=0; j<3; j++){
-                            points[i][j]=0;
-                            if(tgtBoard.state(i, j)==TA::BoardInterface::Tag::None){
+                            if(tgtBoard.isPlaceable(i, j)){
                                 //empty space
-                                points[i][j]+=enemyAround(tgtBoard, i, j, this->mytag);
+                                points[i][j]+=enemyAround(tgtBoard, i, j, this->mytag, 1);
                                 points[i][j]+=allyAround(tgtBoard, i, j, this->mytag);
                                 //update (retx, rety) if better
-                                if(points[i][j]>maxpnt){
+                                if(points[i][j]>maxpnt || ((points[i][j]!=0&&points[i][j]==maxpnt)&&rand()%2)){
                                     maxpnt = points[i][j];
                                     retx = vaildx*3+i;
                                     rety = vaildy*3+j;
@@ -128,20 +129,43 @@ public:
                     }
                 }
                 else{
-                    //occupied or tied
-                    
+                    //subBoard occupied or tied(impossible, full)
+                    for(int i=0; i<3; i++){
+                        for(int j=0; j<3; j++){
+                            if(tgtBoard.isPlaceable(i, j)){
+                                if((!MainBoard.isOccupied(i,j)) && (!MainBoard.sub(i,j).full())){
+                                    points[i][j]+=3;
+                                }
+                                
+                                if(mytag==TA::BoardInterface::Tag::O){
+                                    points[i][j]+=enemyAround(MainBoard, i/3, j/3, TA::BoardInterface::Tag::X, 10);
+                                }
+                                else if(mytag==TA::BoardInterface::Tag::X){
+                                    points[i][j]+=enemyAround(MainBoard, i/3, j/3, TA::BoardInterface::Tag::O, 10);
+                                }
+
+                                if(points[i][j]>maxpnt || ((points[i][j]!=0&&points[i][j]==maxpnt)&&rand()%2)){
+                                    maxpnt = points[i][j];
+                                    retx = vaildx*3+i;
+                                    rety = vaildy*3+j;
+                                    decision = Mode::Standard;
+                                }
+                            }
+                        }
+                    }
                 }
                 
             }
             else if(!confined){
-                //board full, place anywhere
+                //subBoard full, place anywhere on Ultraboard
+                //9x9 options
                 for(int i=0; i<9; i++){
                     for(int j=0; j<9; j++){
                         if(MainBoard.get(i, j)==TA::BoardInterface::Tag::None){
                             //if placeable
                             if(MainBoard.state(i/3, j/3)==TA::BoardInterface::Tag::None){
                                 //if subBoard not occupied yet
-                                points[i][j]+=enemyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag);
+                                points[i][j]+=enemyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag, 1);
                                 points[i][j]+=allyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag);
                             }
 
@@ -204,7 +228,7 @@ public:
         if(x>=0 && x<3 && y>=0 && y<3) return true;
         else return false;
     }
-    bool isEnemy(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag allytag){
+    bool isEnemy(TA::BoardInterface& tgtBoard, int x, int y, TA::BoardInterface::Tag allytag){
         TA::BoardInterface::Tag enemytag = TA::BoardInterface::Tag::None;
         if(allytag == TA::BoardInterface::Tag::O) enemytag = TA::BoardInterface::Tag::X;
         else if(allytag == TA::BoardInterface::Tag::X) enemytag = TA::BoardInterface::Tag::O;
@@ -216,7 +240,7 @@ public:
         }
         else return false;
     }
-    bool isNone(TA::Board tgtBoard, int x, int y){
+    bool isNone(TA::BoardInterface& tgtBoard, int x, int y){
         if(inRange(x,y)){
             if(tgtBoard.state(x,y)==TA::BoardInterface::Tag::None){
                 return true;
@@ -226,10 +250,10 @@ public:
         else return false;
     }
     
-    int enemyAround(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag t){
+    int enemyAround(TA::BoardInterface& tgtBoard, int x, int y, TA::BoardInterface::Tag t, int weight){
         //X None X is not considered!
-        int enemypnt=1;
-        int blockpnt=9;
+        int enemypnt=1*weight;
+        int blockpnt=9*weight;
         int totalpnt=0;
         if(x+y==1 || x+y==3){
             //at cross, check ignore tilt

@@ -12,22 +12,22 @@ namespace TA {
             Tie
         };
         friend std::ostream& operator<<(std::ostream& os, Tag& tag){
-        switch(tag){
-            case Tag::None:
-                os<<"None";
-                break;
-            case Tag::O:
-                os<<"O";
-                break;
-            case Tag::X:
-                os<<"X";
-                break;
-            case Tag::Tie:
-                os<<"Tie";
-                break;
+            switch(tag){
+                case Tag::None:
+                    os<<"None";
+                    break;
+                case Tag::O:
+                    os<<"O";
+                    break;
+                case Tag::X:
+                    os<<"X";
+                    break;
+                case Tag::Tie:
+                    os<<"Tie";
+                    break;
+            }
+            return os;
         }
-        return os;
-    }
 
         virtual Tag state(int x, int y) const = 0;
 
@@ -61,6 +61,11 @@ namespace TA {
             return true;
         }
 
+        bool isPlaceable(int ix, int iy){
+            return b[ix][iy] == Tag::None;
+        }
+
+        //tag of Board[ix][iy]
         Tag state(int x, int y) const override {
             return b[x][y];
         };
@@ -87,7 +92,7 @@ namespace TA {
             if(x == 2 && tmp == state(x-1, y) && tmp == state(x-2, y)) flag = 1;
             if((tmp == state(0, 0) && tmp == state(1, 1) && tmp == state(2, 2)) || 
                (tmp == state(0, 2) && tmp == state(1, 1) && tmp == state(2, 0))) flag = 1;
-            if(flag) setWinTag(tmp);
+            if(flag &&tmp!=Tag::Tie) setWinTag(tmp); //6/6
             else{
                 if(full()) setWinTag(Tag::Tie);
                 else setWinTag(Tag::None);
@@ -101,7 +106,6 @@ namespace TA {
 
     private:
         Tag b[3][3];
-        //060504
         Tag wintag;
     };
 } // Namespace TA
