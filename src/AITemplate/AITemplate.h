@@ -116,7 +116,9 @@ public:
                             if(tgtBoard.isPlaceable(i, j)){
                                 //empty space
                                 points[i][j]+=enemyAround(tgtBoard, i, j, this->mytag, 1);
-                                points[i][j]+=allyAround(tgtBoard, i, j, this->mytag);
+                                int allypnt = allyAround(tgtBoard, i, j, this->mytag);
+                                std::cout<<"test ally:"<<allypnt<<std::endl;
+                                points[i][j]+=allypnt;
                                 //update (retx, rety) if better
                                 if(points[i][j]>maxpnt || ((points[i][j]!=0&&points[i][j]==maxpnt)&&rand()%2)){
                                     maxpnt = points[i][j];
@@ -243,6 +245,19 @@ public:
     bool isNone(TA::BoardInterface& tgtBoard, int x, int y){
         if(inRange(x,y)){
             if(tgtBoard.state(x,y)==TA::BoardInterface::Tag::None){
+                return true;
+            }
+            else return false;
+        }
+        else return false;
+    }
+
+    bool isAlly(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag allytag){
+        TA::BoardInterface::Tag enemytag;
+        if(allytag == TA::BoardInterface::Tag::O) enemytag = TA::BoardInterface::Tag::X;
+        else if(allytag == TA::BoardInterface::Tag::X) enemytag = TA::BoardInterface::Tag::O;
+        if(inRange(x,y)){
+            if(tgtBoard.state(x,y)==allytag){
                 return true;
             }
             else return false;
@@ -412,8 +427,115 @@ public:
     }
     int allyAround(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag t){
         int ally=0;
+        int totalpnt= 0;
+        int allypnt = 2;
+        int linkpnt = 12;
+        int canlink = 3;
 
+        if((x == 0 && y == 0)||(x == 0 && y == 2)||(x == 2 && y == 0)||(x == 2 && y == 2)){
+            if(isAlly(tgtBoard,x,y+1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x,y+2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x,y+2)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x,y-1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x,y-2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x,y-2)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x+1,y,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x+2,y,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x+2,y)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x-1,y,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x-2,y,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x-2,y)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x+1,y+1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x+2,y+2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x+2,y+2)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x-1,y-1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x-2,y-2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x-2,y-2)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x-1,y+1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x-2,y+2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x-2,y+2)) totalpnt += canlink;
+            } 
+            if(isAlly(tgtBoard,x+1,y-1,t)){
+                totalpnt += allypnt;
+                if(isAlly(tgtBoard,x+2,y-2,t)) totalpnt += linkpnt;
+                else if(isNone(tgtBoard,x+2,y-2)) totalpnt += canlink;
+            } 
+            if(isNone(tgtBoard,x,y+1) && isAlly(tgtBoard,x,y+2,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x,y-1) && isAlly(tgtBoard,x,y-2,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x+1,y) && isAlly(tgtBoard,x+2,y,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x-1,y) && isAlly(tgtBoard,x-2,y,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x+1,y+1) && isAlly(tgtBoard,x+2,y+2,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x-1,y-1) && isAlly(tgtBoard,x-2,y-2,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x-1,y+1) && isAlly(tgtBoard,x-2,y+2,t)) totalpnt += canlink;
+            if(isNone(tgtBoard,x+1,y-1) && isAlly(tgtBoard,x+2,y-2,t)) totalpnt += canlink;
+        }
+
+
+        if((x == 0 && y == 1)||(x == 1 && y == 0)||(x == 1 && y == 2)||(x == 2 && y == 1)){
+            if(isAlly(tgtBoard,x,y+1,t) || isAlly(tgtBoard,x, y-1,t)){
+                if(isAlly(tgtBoard,x,y-1,t) && isAlly(tgtBoard,x,y+1,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x,y+1) || isNone(tgtBoard,x,y-1)) totalpnt += (allypnt+canlink);
+                else if(isAlly(tgtBoard,x,y+2,t) || isAlly(tgtBoard,x,y-2,t)) totalpnt += (allypnt+linkpnt);
+                else if(isNone(tgtBoard,x,y+2) || isNone(tgtBoard,x,y-2)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            }
+
+            if(isAlly(tgtBoard,x-1,y,t) || isAlly(tgtBoard,x+1, y,t)){
+                if(isAlly(tgtBoard,x-1,y,t) && isAlly(tgtBoard,x+1,y,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x-1,y) || isNone(tgtBoard,x+1,y)) totalpnt += (allypnt+canlink);
+                else if(isAlly(tgtBoard,x-2,y,t) || isAlly(tgtBoard,x+2,y,t)) totalpnt += (allypnt+linkpnt);
+                else if(isNone(tgtBoard,x-2,y) || isNone(tgtBoard,x+2,y)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            }  
+
+        }
         return ally;
+        if(x == 1 && y == 1){
+            if(isAlly(tgtBoard,x,y+1,t) || isAlly(tgtBoard,x, y-1,t)){
+                if(isAlly(tgtBoard,x,y-1,t) && isAlly(tgtBoard,x,y+1,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x,y+1) || isNone(tgtBoard,x,y-1)) totalpnt += (allypnt+canlink);
+                //else if(isAlly(tgtBoard,x,y+2,t) || isAlly(tgtBoard,x,y-2,t)) totalpnt += (allypnt+linkpnt);
+                //else if(isNone(tgtBoard,x,y+2) || isNone(tgtBoard,x,y-2)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            }
+
+            if(isAlly(tgtBoard,x-1,y,t) || isAlly(tgtBoard,x+1, y,t)){
+                if(isAlly(tgtBoard,x-1,y,t) && isAlly(tgtBoard,x+1,y,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x-1,y) || isNone(tgtBoard,x+1,y)) totalpnt += (allypnt+canlink);
+                //else if(isAlly(tgtBoard,x-2,y,t) || isAlly(tgtBoard,x+2,y,t)) totalpnt += (allypnt+linkpnt);
+                //else if(isNone(tgtBoard,x-2,y) || isNone(tgtBoard,x+2,y)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            } 
+            if(isAlly(tgtBoard,x+1,y+1,t) || isAlly(tgtBoard,x-1, y-1,t)){
+                if(isAlly(tgtBoard,x-1,y-1,t) && isAlly(tgtBoard,x+1,y+1,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x+1,y+1) || isNone(tgtBoard,x-1,y-1)) totalpnt += (allypnt+canlink);
+                //else if(isAlly(tgtBoard,x,y+2,t) || isAlly(tgtBoard,x,y-2,t)) totalpnt += (allypnt+linkpnt);
+                //else if(isNone(tgtBoard,x,y+2) || isNone(tgtBoard,x,y-2)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            }
+
+            if(isAlly(tgtBoard,x-1,y+1,t) || isAlly(tgtBoard,x+1, y-1,t)){
+                if(isAlly(tgtBoard,x-1,y+1,t) && isAlly(tgtBoard,x+1,y-1,t)) totalpnt += (2*allypnt+ linkpnt);
+                else if(isNone(tgtBoard,x-1,y+1) || isNone(tgtBoard,x+1,y-1)) totalpnt += (allypnt+canlink);
+                //else if(isAlly(tgtBoard,x-2,y,t) || isAlly(tgtBoard,x+2,y,t)) totalpnt += (allypnt+linkpnt);
+                //else if(isNone(tgtBoard,x-2,y) || isNone(tgtBoard,x+2,y)) totalpnt += (allypnt+canlink);
+                else totalpnt += allypnt;
+            } 
+        }
+        return totalpnt;
     }
     /*bool canBlock(TA::Board tgtBoard, int x, int y){
         bool ans = false;
