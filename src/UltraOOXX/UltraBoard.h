@@ -22,11 +22,11 @@ namespace TA {
             return b[x/3][y/3].get(x%3, y%3);
         }
 
-        Board& sub(int x, int y) {
-            return b[x][y];
+        Board& sub(int ix, int iy) {
+            return b[ix][iy];
         }
 
-        //wintag of UltraBoard[ix][iy]
+        //tag of UltraBoard[ix][iy]
         Tag state(int x, int y) const override {
             return b[x][y].getWinTag();
         };
@@ -37,6 +37,10 @@ namespace TA {
                     if (!b[i][j].full())
                         return false;
             return true;
+        }
+
+        bool isOccupied(int ix, int iy){
+            return !(b[ix][iy].getWinTag()==Tag::None);
         }
 
         bool isVaild(int x, int y) const{
@@ -62,7 +66,7 @@ namespace TA {
             if(x == 2 && tmp == state(x-1, y) && tmp == state(x-2, y)) flag = 1;
             if((tmp == state(0, 0) && tmp == state(1, 1) && tmp == state(2, 2)) || 
                (tmp == state(0, 2) && tmp == state(1, 1) && tmp == state(2, 0))) flag = 1;
-            if(flag) setWinTag(tmp);
+            if(flag &&tmp!=Tag::Tie) setWinTag(tmp);
             else{
                 if(full()) setWinTag(Tag::Tie);
                 else setWinTag(Tag::None);
