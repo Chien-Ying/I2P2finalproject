@@ -8,6 +8,8 @@
 #include <UltraOOXX/Wrapper/Content.h>
 
 bool randseed = false;
+bool stopnwait = true;
+int times=1;
 
 bool load(const char *libpath, Content &table)
 {
@@ -39,24 +41,29 @@ int main()
 {
     if(randseed)srand(time(nullptr));
 
-    Content P1, P2;   
-    if( !load("./a1.so", P1) ){
-        std::cout<<"P1 Fail";
-        exit(-1);
+    for(int i=0; i<times; i++){
+        Content P1, P2;   
+        if( !load("./a1.so", P1) ){
+            std::cout<<"P1 Fail";
+            exit(-1);
+        }
+
+        if( !load("./a2.so", P2) ){
+            std::cout<<"P2 Fail";
+            exit(-1);
+        }
+        TA::UltraOOXX game;
+
+        game.setPlayer1( (AIInterface*) P1.getai() );
+        game.setPlayer2( (AIInterface*) P2.getai() );
+
+        game.run();
+
+        dlclose(P1.handle);
+        dlclose(P2.handle);
+
+        system("read -p 'Press Enter to continue...' var");
     }
-
-    if( !load("./a2.so", P2) ){
-        std::cout<<"P2 Fail";
-        exit(-1);
-    }
-    TA::UltraOOXX game;
-
-    game.setPlayer1( (AIInterface*) P1.getai() );
-    game.setPlayer2( (AIInterface*) P2.getai() );
-
-    game.run();
-
-    dlclose(P1.handle);
-    dlclose(P2.handle);
+    
     return 0;
 }

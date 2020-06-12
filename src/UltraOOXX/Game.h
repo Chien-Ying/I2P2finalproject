@@ -11,6 +11,8 @@
 #include <future>
 #include <type_traits>
 
+extern bool stopnwait;
+
 namespace TA
 {
     class UltraOOXX
@@ -68,7 +70,7 @@ namespace TA
                 }
                 updateGuiGame();
 
-                system("read -p 'Press Enter to continue...' var");
+                if(stopnwait)system("read -p 'Press Enter to continue...' var");
                 
                 //testing
                 printf( "\033[H\033[J" );
