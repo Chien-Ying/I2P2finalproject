@@ -18,7 +18,8 @@ public:
         Offense,
         Defense,
         Random,
-        Standard
+        Standard,
+        Manual
     };
     friend std::ostream& operator<<(std::ostream& os, Mode& mode){
         switch(mode){
@@ -51,13 +52,15 @@ private:
     int n;
 
     //for standard mode
-    int subweight=7;
+    int subweight=10;
     int ultraweight=2;
     int enemypnt=1;
     int blockpnt=5;
     int allypnt=1;
     int linkpnt=7;
     int canlink=1;
+    int sameboardpnt=10;
+    int senduselesspnt=5;
     
 public:
     
@@ -134,7 +137,7 @@ public:
             int points[9][9]={0};
             int ultrapoints[9][9]={0};
             int total[9][9]={0};
-            int maxpnt=0;
+            int maxpnt=-9876;
 
 
             if(confined){
@@ -157,13 +160,17 @@ public:
                             //else{
                                 //subBoard occupied
                                 //send to occupied or useless
-                                if((MainBoard.isOccupied(i,j)) && (!MainBoard.sub(i,j).full())){
-                                    points[i][j]+=3;
+                                if(((MainBoard.isOccupied(i,j))||canConqure(tgtBoard, i, j, this->mytag)) 
+                                && (!MainBoard.sub(i,j).full())){
+                                    points[i][j]+=senduselesspnt;
                                 }
                             //}
 
                             //analyze UltraBoard
-                            //bug!!!
+                            
+                            //prevent next round still in the same subboard
+                            if(vaildx==i&&vaildy==j&&(!canConqure(tgtBoard, i, j, this->mytag)))ultrapoints[i][j]+=sameboardpnt;
+
                             if(mytag==TA::BoardInterface::Tag::O){
                                 ultrapoints[i][j]+=ultraEndnager(MainBoard, i, j, TA::BoardInterface::Tag::X, 1);
                                 ultrapoints[i][j]+=subEndanger(MainBoard, i, j, TA::BoardInterface::Tag::X, 1);
@@ -173,13 +180,9 @@ public:
                                 ultrapoints[i][j]+=subEndanger(MainBoard, i, j, TA::BoardInterface::Tag::O, 1);
                             }
 
-                            //prevent next round still in the same subboard
-                            if(vaildx==i&&vaildy==j)ultrapoints[i][j]-=10;
-
                             //update (retx, rety) if better
                             total[i][j] = points[i][j]*subweight-ultrapoints[i][j]*ultraweight;
-                            if((total[i][j]>maxpnt) || ((total[i][j]!=0&&total[i][j]==maxpnt)&&rand()%2)
-                                || (i==0&&j==0)){
+                            if((total[i][j]>maxpnt) || ((total[i][j]!=0&&total[i][j]==maxpnt)&&rand()%2)){
                                 maxpnt = total[i][j];
                                 retx = vaildx*3 + i;
                                 rety = vaildy*3 + j;
@@ -207,12 +210,16 @@ public:
                                 points[i][j]+=allyAround(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag, 1);
                             }
                             //else{
-                                if((MainBoard.isOccupied(i/3,j/3)) && (!MainBoard.sub(i/3,j/3).full())){
-                                    points[i][j]+=3;
+                                if(((MainBoard.isOccupied(i/3,j/3))||canConqure(MainBoard.sub(i/3, j/3), i%3, j%3, this->mytag)) 
+                                && (!MainBoard.sub(i,j).full())){
+                                    points[i][j]+=senduselesspnt;
                                 }
                             //}
 
-                            if(vaildx==i&&vaildy==j)ultrapoints[i][j]-=10;
+                            //prevent same board
+                            if(i/3==i%3&&j/3==j%3&&(!canConqure(MainBoard.sub(i/3,j/3), i%3, j%3, this->mytag))){
+                                ultrapoints[i][j]+=sameboardpnt;
+                            }
 
                             //ultraboard analysis
                             //bug!!!
@@ -227,8 +234,7 @@ public:
 
                             //update if better
                             total[i][j] = points[i][j]*subweight-ultrapoints[i][j]*ultraweight;
-                            if((total[i][j]>maxpnt) || ((total[i][j]!=0&&total[i][j]==maxpnt)&&rand()%2)
-                                || (i==0&&j==0)){
+                            if((total[i][j]>maxpnt) || ((total[i][j]!=0&&total[i][j]==maxpnt)&&rand()%2)){
                                 maxpnt = total[i][j];
                                 retx = i;
                                 rety = j;
@@ -382,6 +388,11 @@ public:
             }  
 
         }
+        else if(mode==Mode::Manual){
+            //confined by 1000ms time limit
+            std::cout<<"Your turn! Where to put?(enter x y):"<<std::endl;
+            std::cin>>retx>>rety;
+        }
         
         if(dbg)std::cout<<"choose:("<<retx<<","<<rety<<")\n";
 
@@ -397,10 +408,23 @@ public:
     int subEndanger(TA::UltraBoard& MainBoard, int x, int y, TA::BoardInterface::Tag t, int weight){
         TA::Board& tgtboard = MainBoard.sub(x, y);
         int pnt = 0;
-        for(int i = 0; i < 3; i++){
-            for(int j = 0; j < 3; j++){
-                pnt += enemyAround(tgtboard, i, j, t, weight);
-                pnt += allyAround(tgtboard, i, j, t, weight);
+
+        if(tgtboard.getWinTag()==TA::BoardInterface::Tag::None){
+            //if subBoard not occupied yet
+            for(int i = 0; i < 3; i++){
+                for(int j = 0; j < 3; j++){
+                    pnt += enemyAround(tgtboard, i, j, t, weight);
+                    pnt += allyAround(tgtboard, i, j, t, weight);
+                }
+            }
+        }
+        else if(tgtboard.getWinTag()!=TA::BoardInterface::Tag::None){
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    if(MainBoard.isOccupied(i,j)&&(!MainBoard.sub(i,j).full())){
+                        pnt+=senduselesspnt;
+                    }
+                }
             }
         }
         return pnt;
@@ -721,9 +745,28 @@ public:
         bool ans = false;
         return ans;
     }*/
-    bool canConqure(TA::Board tgtBoard, int x, int y){
-        bool ans = false;
+    bool canConqure(TA::Board tgtBoard, int x, int y, TA::BoardInterface::Tag t){
+        if(y==0 && isAlly(tgtBoard, x, y+1, t) && isAlly(tgtBoard, x, y+2, t))return true;
+        if(y==1 && isAlly(tgtBoard, x, y-1, t) && isAlly(tgtBoard, x, y+1, t))return true;
+        if(y==2 && isAlly(tgtBoard, x, y-2, t) && isAlly(tgtBoard, x, y-1, t))return true;
+        if(x==0 && isAlly(tgtBoard, x+1, y, t) && isAlly(tgtBoard, x+2, y, t))return true;
+        if(x==1 && isAlly(tgtBoard, x-1, y, t) && isAlly(tgtBoard, x+1, y, t))return true;
+        if(x==2 && isAlly(tgtBoard, x-2, y, t) && isAlly(tgtBoard, x-1, y, t))return true;
 
-        return ans;
+        if(x+y==0 || x+y==2 || x+y==4){
+            //tilt
+            if(!(x==1&&y==1)){
+                if(isAlly(tgtBoard, x+1, y+1, t)&&isAlly(tgtBoard, x+2, y+2, t))return true;
+                if(isAlly(tgtBoard, x+1, y-1, t)&&isAlly(tgtBoard, x+2, y-2, t))return true;
+                if(isAlly(tgtBoard, x-1, y+1, t)&&isAlly(tgtBoard, x-2, y+2, t))return true;
+                if(isAlly(tgtBoard, x-1, y-1, t)&&isAlly(tgtBoard, x-2, y-2, t))return true;
+            }
+            else if(x==1&&y==1){
+                if(isAlly(tgtBoard, x+1, y+1, t)&&isAlly(tgtBoard, x-1, y-1, t))return true;
+                if(isAlly(tgtBoard, x+1, y-1, t)&&isAlly(tgtBoard, x-1, y+1, t))return true;
+            }
+        }
+
+        return false;
     }
 };
