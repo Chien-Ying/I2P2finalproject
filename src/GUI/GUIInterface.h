@@ -129,7 +129,9 @@ R"( _   _ _ _             _____  _______   ____   __
                     std::printf("%s", buf.c_str());
                     for (int j=0;j<3;++j)
                     {
-                        std::putchar(toPrintChar(b.state(i, j)));
+                        std::putchar(toPrintChar(b.sub(i,j).getWinTag()));
+                        TA::BoardInterface::Tag tg = b.sub(i, j).getWinTag();
+                        std::cout << tg;
                         if (j == 0 || j == 1) std::putchar('|');
                     }
                 }
