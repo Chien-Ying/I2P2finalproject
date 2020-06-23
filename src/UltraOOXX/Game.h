@@ -70,7 +70,8 @@ namespace TA
                 }
                 updateGuiGame();
 
-                if(stopnwait)system("read -p 'Press Enter to continue...' var");
+                //if(stopnwait) 
+                system("read -p 'Press Enter to continue...' var");
                 
                 //testing
                 printf( "\033[H\033[J" );
@@ -96,11 +97,12 @@ namespace TA
             //std::cout<<pos.first<<"!!!"<<pos.second<<"!!!\n";
             
             enemy->callbackReportEnemy(pos.first,pos.second);
-            MainBoard.set(pos.first, pos.second, tag);
+           // MainBoard.set(pos.first, pos.second, tag);
+            MainBoard.get(pos.first, pos.second) = tag;
 
             //Ido
-            MainBoard.sub(pos.first/3, pos.second/3).determineWin(pos.first%3, pos.second%3);
-            MainBoard.determineWin(pos.first/3, pos.second/3);
+            //MainBoard.sub(pos.first/3, pos.second/3).determineWin(pos.first%3, pos.second%3);
+            //MainBoard.determineWin(pos.first/3, pos.second/3);
         //I_end
             //end
             return true;
@@ -124,7 +126,7 @@ namespace TA
                 updateGuiGame();
                 return true;
             }
-            else if(MainBoard.full()){
+            else if(MainBoardfull(MainBoard)){
                 std::cout<<"FULL!GAMEOVER!!!\n";
                 updateGuiGame();
                 return true;
@@ -132,6 +134,14 @@ namespace TA
             else return false;
             //end
             /*return true; // Gameover!*/
+        }
+
+        bool MainBoardfull(TA::UltraBoard board) const {
+            for (int i=0;i<3;++i)
+                for (int j=0;j<3;++j)
+                    if (!board.sub(i ,j).full())
+                        return false;
+            return true;
         }
 
         bool prepareState()
